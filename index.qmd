@@ -1,0 +1,41 @@
+---
+title: "C-Turkey: Dataset Explorer"
+subtitle: "An Interactive Portal for Radiocarbon Determinations from Türkiye"
+author: "N. Ezgi Altınışık"
+format:
+  html:
+    theme: cosmo
+    page-layout: full
+    toc: false
+---
+
+Welcome to the interactive explorer for the **C-Turkey Dataset**. This portal allows researchers to filter, search, and export curated radiocarbon records based on material, species, and genomic integration status.
+
+For details on methodology and primary sources, please refer to the [main repository](https://github.com/ezgimo/C-Turkey) and the associated publication.
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(DT)
+
+# Veriyi oku
+df <- read_tsv("data/processed/cturkey_v0.tsv")
+
+
+# Tabloyu oluştur
+datatable(
+  df,
+  filter = 'top',
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf'),
+    pageLength = 15,
+    autoWidth = TRUE,
+    columnDefs = list(list(className = 'dt-center', targets = "_all"))
+  ),
+  class = 'cell-border stripe',
+  rownames = FALSE
+)
+```
+
+
