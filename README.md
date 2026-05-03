@@ -1,4 +1,5 @@
-# C-Turkey: A comprehensive radiocarbon dataset from Türkiye
+# C-Turkey: A comprehensive radiocarbon dataset from Türkiye 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20011918.svg)](https://doi.org/10.5281/zenodo.20011918)
 
 This repository contains the code and data associated with the **C-Turkey** dataset, a comprehensive and curated database of radiocarbon records from Türkiye.
 
