@@ -7,17 +7,32 @@ library(patchwork)
 
 # --- 1. Data Preparation ---
 # Standardizing labels for publication
-df <- read_tsv('data/raw/cturkey.tsv') %>%
-  mutate(source_label = case_when(
+df <- read_tsv('data/raw/cturkey_v1_raw.tsv') %>%
+  mutate(base_label = case_when(
     sourcedb == "present datasets" ~ "Global Repositories",
     sourcedb == "aadr" ~ "AADR v.66 (Integrated)",
     sourcedb == "c-turkey" ~ "C-Turkey (Current Study)",
     TRUE ~ sourcedb
   ))
 
-# Set factor levels for consistent plotting order
-db_levels <- c("Global Repositories", "AADR v.66 (Integrated)", "C-Turkey (Current Study)")
+counts <- df %>% count(base_label)
+
+df <- df %>%
+  left_join(counts, by = "base_label") %>%
+  mutate(source_label = paste0(base_label, " (n = ", n, ")"))
+
+db_base_levels <- c("Global Repositories", "AADR v.66 (Integrated)", "C-Turkey (Current Study)")
+db_levels <- map_chr(db_base_levels, function(lbl) {
+  cnt <- counts$n[counts$base_label == lbl]
+  paste0(lbl, " (n = ", cnt, ")")
+})
+
 df$source_label <- factor(df$source_label, levels = db_levels)
+
+
+# Set factor levels for consistent plotting order
+#db_levels <- c("Global Repositories", "AADR v.66 (Integrated)", "C-Turkey (Current Study)")
+#df$source_label <- factor(df$source_label, levels = db_levels)
 
 # Geographic boundaries
 turkey <- ne_countries(scale = "medium", country = "turkey", returnclass = "sf")
@@ -26,12 +41,13 @@ turkey <- ne_countries(scale = "medium", country = "turkey", returnclass = "sf")
 fig1_map <- ggplot() +
   geom_sf(data = turkey, fill = "grey95", color = "grey70", size = 0.1) +
   geom_point(data = df, 
-             aes(x = lon, y = lat, color = sourcedb), 
-             alpha = 0.4, size = 1.2, 
+             aes(x = lon, y = lat, color = source_label), 
+             alpha = 0.8, size = 2, 
              position = position_jitter(width = 0.08, height = 0.08),
              stroke = 0) +
   facet_wrap(~source_label, ncol = 1) + 
-  scale_color_d3() +
+  scale_color_manual(values = setNames(MetBrewer::met.brewer("Hokusai1", n = 3),db_levels)) +
+  #scale_color_manual(values = c("Global Repositories" = MetBrewer::met.brewer("Hokusai1",n = 3)[1], "AADR v.66 (Integrated)" = MetBrewer::met.brewer("Hokusai1",n = 3)[2], "C-Turkey (Current Study)" = MetBrewer::met.brewer("Hokusai1",n = 3)[3])) +
   coord_sf() +
   theme_minimal(base_family = "sans") +
   theme(
@@ -51,17 +67,21 @@ calibrated <- calibrate(x = df_clean$c14age, errors = df_clean$c14std, calCurve 
 bins <- binPrep(sites = df_clean$site, ages = df_clean$c14age, h = 100)
 
 # Calculate SPD for each source
+
 spd_all <- map_dfr(db_levels, function(s) {
   idx <- which(df_clean$source_label == s)
+  if(length(idx) == 0) return(NULL)
   s_spd <- spd(calibrated[idx], bins = bins[idx], timeRange = c(22000, 0))
   data.frame(calBP = s_spd$grid$calBP, prob = s_spd$grid$PrDens, source_label = s)
 }) %>% mutate(source_label = factor(source_label, levels = db_levels))
+
 
 fig2_spd <- ggplot(spd_all, aes(x = calBP, y = prob, fill = source_label)) +
   geom_area(alpha = 0.8, color = "white", size = 0.05) +
   facet_wrap(~source_label, ncol = 1, scales = "free_y") +
   scale_x_reverse(expand = c(0,0)) +
-  scale_fill_d3() +
+  scale_fill_manual(values = setNames(MetBrewer::met.brewer("Hokusai1", n = 3), db_levels)) +
+  #scale_fill_manual(values = c("Global Repositories" = MetBrewer::met.brewer("Hokusai1",n = 3)[1], "AADR v.66 (Integrated)" = MetBrewer::met.brewer("Hokusai1",n = 3)[2], "C-Turkey (Current Study)" = MetBrewer::met.brewer("Hokusai1",n = 3)[3])) +
   theme_minimal(base_family = "sans") +
   theme(
     strip.text = element_text(face = "bold", size = 10),
@@ -96,14 +116,14 @@ df_quality <- df %>%
     source_label = case_when(
       sourcedb == "present datasets" ~ "Global Repositories",
       sourcedb == "aadr" ~ "AADR",
-      sourcedb == "c-turkey" ~ "C-Turkey (Current Study)",
+      sourcedb == "c-turkey" ~ "C-Turkey",
       TRUE ~ sourcedb
     ),
     # Grouping materials into academic categories
     mat_group = case_when(
-      str_detect(material, "(?i)bone|tooth|collagen|apatite|kemik|animal|mule|sheep|dog|horse|cattle|fur") ~ "Bone/Teeth (Human/Animal)",
+      str_detect(material, "(?i)bone|tooth|teeth|collagen|apatite|kemik|animal|mule|sheep|dog|horse|cattle|fur") ~ "Bone/Teeth (Human/Animal)",
       str_detect(material, "(?i)seed|grain|stone|vetch|nutshell|fruitstone|straw|plant remain") ~ "Short-lived Plants",
-      str_detect(material, "(?i)charcoal|wood|twigs") ~ "Woody Plants (Charcoal)",
+      str_detect(material, "(?i)charcoal|wood|twigs|charred material") ~ "Woody Plants (Charcoal)",
       str_detect(material, "(?i)soil|sediment|foraminifers|shell|seagrass|pollen|humic acid") ~ "Environmental/Soil",
       str_detect(material, "(?i)textile|bread|brain|dung|adobe|organic|clay|ceramic") ~ "Anthropic/Residues",
       TRUE ~ "Indeterminate/Other"
@@ -116,7 +136,7 @@ df_quality <- df %>%
     )
   ) %>%
   mutate(
-    source_label = factor(source_label, levels = c("Global Repositories", "AADR", "C-Turkey (Current Study)")),
+    source_label = factor(source_label, levels = c("Global Repositories", "AADR", "C-Turkey")),
     mat_group = factor(mat_group, levels = c("Bone/Teeth (Human/Animal)", "Short-lived Plants", "Woody Plants (Charcoal)", "Environmental/Soil", "Anthropic/Residues", "Indeterminate/Other"))
   )
 
@@ -125,7 +145,7 @@ fig2_quality <- ggplot(df_quality, aes(x = mat_group, fill = dna_status)) +
   geom_bar(position = "stack", alpha = 0.9, width = 0.7) +
   # Faceting by source to highlight the specific contribution of C-Turkey
   facet_grid(~source_label, scales = "free_x", space = "free_x") + 
-  scale_fill_manual(values = c("Genomically Integrated" = "#E64B35FF", "Chronometric Only" = "#4DBBD5FF")) +
+  scale_fill_manual(values = c("Genomically Integrated" = MetBrewer::met.brewer("Hokusai3",n = 3)[1], "Chronometric Only" = MetBrewer::met.brewer("Hokusai3",n = 3)[3])) +
   theme_minimal(base_family = "sans") +
   theme(
     axis.text.x = element_text(
@@ -170,7 +190,7 @@ df_share <- df %>%
     mat_group = case_when(
       str_detect(material, "(?i)bone|tooth|collagen|apatite|kemik|animal|mule|sheep|dog|horse|cattle|fur") ~ "Bone/Teeth (Human/Animal)",
       str_detect(material, "(?i)seed|grain|stone|vetch|nutshell|fruitstone|straw|plant remain") ~ "Short-lived Plants",
-      str_detect(material, "(?i)charcoal|wood|twigs") ~ "Woody Plants (Charcoal)",
+      str_detect(material, "(?i)charcoal|wood|twigs|charred material") ~ "Woody Plants (Charcoal)",
       str_detect(material, "(?i)soil|sediment|foraminifers|shell|seagrass|pollen|humic acid") ~ "Environmental/Soil",
       str_detect(material, "(?i)textile|bread|brain|dung|adobe|organic|clay|ceramic") ~ "Anthropic/Residues",
       TRUE ~ "Indeterminate/Other"
@@ -203,7 +223,9 @@ df_share <- df %>%
     mat_group = factor(mat_group, levels = c("Bone/Teeth (Human/Animal)", "Short-lived Plants", "Woody Plants (Charcoal)", "Environmental/Soil", "Anthropic/Residues", "Indeterminate/Other")),
     species_group = factor(species_group, levels = c("Human", "Animal", "Cereal/Pulse/Seed", "Tree/Shrub", "Mollusc/Sediment/Soil", "Organic Residue/Artifact", "Indeterminate"))
   ) %>% 
-  select(-comment)
+  select(-c(comment, base_label, n, longref, source_label))
 
 
-write_tsv(df_share, "data/processed/cturkey_v0.tsv", na = "")
+write_tsv(df_share, "data/processed/cturkey_v1.tsv", na = "")
+
+

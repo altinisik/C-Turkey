@@ -9,7 +9,7 @@ format:
     toc: false
 ---
 
-Welcome to the interactive explorer for the **C-Turkey Dataset**. This portal allows researchers to filter, search, and export curated radiocarbon records based on material, species, and genomic integration status.
+Welcome to the interactive explorer for the **C-Turkey Dataset**. This portal allows researchers to filter, search, and export curated radiocarbon records based on material, species, and genomic integration status. You can use the [**C-Turkey: Radiocarbon Calibration Tool**](https://altinisik.github.io/cturkey-app/) for a fast calibration. It may take a while to open the tools because it works on the client side.
 
 For details on methodology and primary sources, please refer to the [main repository](https://github.com/ezgimo/C-Turkey) and the associated publication.
 
@@ -18,7 +18,7 @@ library(tidyverse)
 library(DT)
 
 # Veriyi oku
-df <- read_tsv("data/processed/cturkey_v0.tsv")
+df <- read_tsv("data/processed/cturkey_v1.tsv")
 
 
 # Tabloyu oluştur
@@ -37,5 +37,3 @@ datatable(
   rownames = FALSE
 )
 ```
-
-
