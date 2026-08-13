@@ -26,4 +26,4 @@ The C-Turkey dataset integrates information from global repositories (such as C1
 
 If you use this dataset or code, please cite it in addition to primary sources:
 
-> Altınışık, N. E. (2026). C-Turkey: A comprehensive radiocarbon dataset from Türkiye (v1.0.0). Zenodo. <https://doi.org/10.5281/zenodo.20011918>
+> Altınışık, N. E. (2026). C-Turkey: A comprehensive radiocarbon dataset from Türkiye (v1.0.0). Zenodo. <https://doi.org/10.5281/zenodo.20011917>
