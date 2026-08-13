@@ -10,7 +10,7 @@ The C-Turkey dataset integrates information from global repositories with region
 
 The C-Turkey dataset integrates information from global repositories (such as C14bazaar and AADR) with regional grey literature, national excavation reports, and direct bioarchaeological metadata. It focuses on chronometric precision, providing standardized material classifications and genomic integration status for 3,390 records.
 
-- **Interactive Data Search:** All records are dynamically searchable through the [C-Turkey Dataset Explorer](https://altinisik.github.io/cturkey-app/).
+- **Interactive Data Search:** All records are dynamically searchable through the [C-Turkey Dataset Explorer](https://altinisik.github.io/C-Turkey/).
 
 - **Online Calibration Tool:** You can use the client-side [C-Turkey: Radiocarbon Calibration Tool](https://altinisik.github.io/cturkey-app/) for fast, serverless radiocarbon calibration powered by WebAssembly/Shinylive. You can also download publication ready figures. *(Note: Initial loading may take a while as the R runtime environment initializes in your browser)*.
 
