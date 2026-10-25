@@ -188,7 +188,9 @@
     .leaflet-bar a { background: var(--surface); color: var(--ink); border-bottom-color: var(--line); }
     .leaflet-container .leaflet-control-attribution { background: rgba(26,35,43,.8); color: var(--muted); }
     .leaflet-tooltip { background: var(--surface); color: var(--ink); border-color: var(--line); }
+    #map.osm-tiles .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6); }
   }
+  #map.osm-tiles .leaflet-tile-pane { filter: saturate(.55) brightness(1.03); }
 </style>
 </head>
 <body class="loading">

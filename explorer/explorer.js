@@ -10,6 +10,9 @@
   var OFFLINE_DATA = "explorer/data.js";
   var CALIBRATE_URL = "https://altinisik.ezgilab.com/cturkey-app/";
   var GENOMIC = "Genomically Integrated";
+  // Free key from https://carto.com/basemaps/apikey (register the domain the
+  // site runs on). Leave empty to use OpenStreetMap tiles instead.
+  var CARTO_KEY = "cb1_4uka_1_7be2b3e56ffaee4e4c2a81ae";
 
   var FACETS = [
     { key: "dna_status", label: "Genomic data" },
@@ -357,10 +360,19 @@
     if (!window.L) { $("map").innerHTML = '<p class="map-msg">The map could not be loaded.</p>'; return; }
     map = L.map("map", { scrollWheelZoom: false, attributionControl: true, zoomSnap: 0.25 });
     var dark = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/" + (dark ? "dark_all" : "light_all") + "/{z}/{x}/{y}{r}.png", {
-      maxZoom: 18, subdomains: "abcd",
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(map);
+    var osm = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    if (CARTO_KEY) {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/" + (dark ? "dark_all" : "light_all") + "/{z}/{x}/{y}{r}.png?key=" + encodeURIComponent(CARTO_KEY), {
+        maxZoom: 18, subdomains: "abcd",
+        attribution: osm + ' &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      }).addTo(map);
+    } else {
+      // OpenStreetMap needs no key; in dark mode the tiles are darkened with CSS
+      $("map").classList.add("osm-tiles");
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19, attribution: osm
+      }).addTo(map);
+    }
     markerLayer = L.layerGroup().addTo(map);
     map.fitBounds([[35.8, 25.6], [42.2, 44.8]]);
     map.on("focus", function () { map.scrollWheelZoom.enable(); });
